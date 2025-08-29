@@ -246,7 +246,18 @@ class ContextValidator:
                 # FOR QUESTIONS: Combined understanding
                 'question_content': visual_content.get('slide_text', '') + '. ' + transcript_text,
                 'confidence': visual_content.get('confidence', 0.0),
-                'visual_elements': [f"Slide content: {visual_content.get('slide_text', '')[:100]}..."]
+                'visual_elements': [f"Slide content: {visual_content.get('slide_text', '')[:100]}..."],
+                
+                # VLM ANALYSIS: Visual content analysis for question enrichment
+                'vlm_analysis': {
+                    'slide_text': visual_content.get('slide_text', ''),
+                    'educational_concepts': visual_content.get('educational_concepts', []),
+                    'visual_elements': visual_content.get('visual_elements', []),
+                    'slide_type': visual_content.get('slide_type', 'text_slide'),
+                    'confidence': visual_content.get('confidence', 0.0),
+                    'analysis_method': 'VLM' if self.use_vlm else 'OCR',
+                    'frame_analysis': f"Frame at {timestamp} contains slide with {len(visual_content.get('educational_concepts', []))} educational concepts"
+                }
             }
             
             logger.info(f"Visual-first context extracted at {timestamp}: {len(visual_content.get('educational_concepts', []))} concepts")

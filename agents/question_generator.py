@@ -1179,17 +1179,21 @@ Task: {difficulty_prompts.get(difficulty, difficulty_prompts['medium'])}
 
 Requirements:
 - Create 1 clear, {difficulty} difficulty question
-- Provide 4 options (A, B, C, D) with exactly 1 correct answer
+- Provide 4 specific, meaningful options (A, B, C, D) with exactly 1 correct answer
 - Make incorrect options plausible but clearly wrong
 - Focus on educational concepts, not trivial details
+- Options should be actual content-specific answers, NOT generic labels
 
 Format your response as JSON:
 {{
     "question": "Your question here?",
-    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "options": ["Specific meaningful option", "Another specific option", "Third specific option", "Fourth specific option"],
     "correct_answer": "A",
     "explanation": "Why this answer is correct"
-}}"""
+}}
+
+Example of good options: ["Correlation coefficient", "Standard deviation", "Mean absolute error", "P-value"]
+Example of bad options: ["Option A", "Option B", "Option C", "Option D"]"""
 
             # Call Ollama LLM
             response = requests.post(
@@ -1243,8 +1247,9 @@ Format your response as JSON:
     
     def _generate_mcq_fallback(self, text: str, timestamp: str, difficulty: str) -> dict:
         """Fallback MCQ generation when LLM is not available"""
+        return None
     
-    def _generate_enhanced_msq_question(self, segment: dict, timestamp: str) -> dict:
+    def _extract_smart_concepts(self, text: str) -> list:
         """Generate Multiple Select Questions (MSQ) with multiple correct answers"""
         try:
             text = segment.get('text', '').strip()

@@ -218,11 +218,23 @@ def process_video():
                         cognitive_level = 'understand'
                         feedback = ''
                     
+                    # Extract VLM analysis from segment context (Visual-First approach)
+                    segment_context = question.get('segment_context', {})
+                    vlm_analysis = segment_context.get('vlm_analysis')
+                    
+                    # Format VLM analysis for output
+                    if isinstance(vlm_analysis, dict):
+                        vlm_analysis_str = f"Analysis method: {vlm_analysis.get('analysis_method', 'Unknown')}. " + \
+                                         f"Frame analysis: {vlm_analysis.get('frame_analysis', '')}. " + \
+                                         f"Educational concepts: {', '.join(vlm_analysis.get('educational_concepts', []))}"
+                    else:
+                        vlm_analysis_str = vlm_analysis or 'No VLM analysis available'
+                    
                     if score >= 7:  # Quality threshold
                         validated_questions.append({
                             'question': question['question'],
                             'timestamp': question.get('timestamp', '00:00:00'),
-                            'segment_text': question.get('segment_text', ''),
+                            'segment_text': segment_context.get('transcript_text', ''),
                             'quality_score': score,
                             'difficulty': difficulty,
                             'tags': tags,
@@ -230,15 +242,15 @@ def process_video():
                             'feedback': feedback,
                             'question_type': question.get('question_type', 'factual'),
                             
-                            'vlm_analysis': question.get('vlm_analysis', 'No VLM analysis available'),
-                            'transcript_analysis': question.get('transcript_analysis', {}),
-                            'frame_analysis_confidence': question.get('frame_analysis_confidence', 0),
+                            'vlm_analysis': vlm_analysis_str,
+                            'transcript_analysis': segment_context.get('transcript_analysis', {}),
+                            'frame_analysis_confidence': segment_context.get('confidence', 0),
                             'transcript_analysis_confidence': question.get('transcript_analysis_confidence', 0),
-                            'educational_indicators': question.get('educational_indicators', []),
-                            'concept_extraction_method': question.get('concept_extraction_method', 'unknown'),
-                            'visual_elements': question.get('visual_elements', ''),
+                            'educational_indicators': segment_context.get('educational_concepts', []),
+                            'concept_extraction_method': segment_context.get('method', 'unknown'),
+                            'visual_elements': ', '.join(segment_context.get('visual_elements', [])),
                             'strategic_tier': question.get('strategic_tier', 'unknown'),
-                            'analysis_mode': question.get('analysis_mode', 'unknown')
+                            'analysis_mode': segment_context.get('method', 'unknown')
                         })
                         
                 except Exception as e:
@@ -298,12 +310,19 @@ def view_questions():
 def get_questions(filename):
     """API endpoint to get questions from a file"""
     try:
-        filepath = os.path.join(app.config['OUTPUT_FOLDER'], filename)
+        # Questions are saved in OUTPUTS_FOLDER
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         if not os.path.exists(filepath):
             return jsonify({'error': 'Questions file not found'}), 404
         
         with open(filepath, 'r') as f:
-            questions = json.load(f)
+            data = json.load(f)
+        
+        # Extract just the questions array if it's wrapped in an object
+        if isinstance(data, dict) and 'questions' in data:
+            questions = data['questions']
+        else:
+            questions = data
         
         return jsonify(questions)
         
@@ -410,11 +429,12 @@ def generate_transcript():
 
 @app.route('/api/files')
 def list_files():
-    """List available output files"""
+    """List available question files"""
     try:
-        output_files = [f for f in os.listdir(app.config['OUTPUT_FOLDER']) 
-                       if f.endswith('.json')]
-        return jsonify({'files': output_files})
+        # Questions are saved in UPLOAD_FOLDER, so look there
+        question_files = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) 
+                         if '_questions_' in f and f.endswith('.json')]
+        return jsonify({'files': question_files})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

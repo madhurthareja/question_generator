@@ -320,9 +320,9 @@
                             <details class="mt-3">
                                 <summary class="text-muted" style="cursor: pointer;">View Context</summary>
                                 <div class="mt-2 p-3" style="background: #f8f9fa; border-radius: 5px;">
-                                    <p><strong>Transcript:</strong> ${q.context.transcript_snippet}</p>
-                                    ${q.context.slide_text ? `<p><strong>Slide Text:</strong> ${q.context.slide_text}</p>` : ''}
-                                    ${q.context.visual_description ? `<p><strong>Visual:</strong> ${q.context.visual_description}</p>` : ''}
+                                    <p><strong>Transcript:</strong> ${q.segment_text || 'No transcript available'}</p>
+                                    ${q.visual_elements ? `<p><strong>Slide Text:</strong> ${q.visual_elements}</p>` : ''}
+                                    ${q.vlm_analysis ? `<p><strong>VLM Analysis:</strong> ${q.vlm_analysis}</p>` : ''}
                                 </div>
                             </details>
                         </div>

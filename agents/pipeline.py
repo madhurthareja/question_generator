@@ -105,6 +105,12 @@ class TriPlusOnePipeline:
                     if question_data:
                         logger.debug(f"Processing {difficulty_key}: {question_data.get('type', 'unknown')} question")
                         
+                        # Extract difficulty from key (easy_question -> easy)
+                        difficulty_level = difficulty_key.replace('_question', '')
+                        
+                        # Ensure consistency between outer and inner difficulty
+                        question_data['difficulty'] = difficulty_level
+                        
                         # Create individual question object
                         individual_question = {
                             'question': question_data,
